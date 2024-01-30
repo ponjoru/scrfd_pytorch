@@ -1,0 +1,51 @@
+
+# --------- pytorch --------- #
+torchmetrics==0.11.0
+
+#-------- deploy ------------
+onnxruntime
+openvino
+onnx
+
+# --------- hydra --------- #
+hydra-core==1.1.0
+hydra-colorlog==1.1.0
+hydra-optuna-sweeper==1.1.0
+
+# --------- loggers --------- #
+# wandb
+# neptune-client
+mlflow
+# comet-ml
+# torch_tb_profiler
+
+# --------- linters --------- #
+pre-commit      # hooks for applying linters on commit
+black           # code formatting
+isort           # import sorting
+flake8          # code analysis
+
+# --------- images processing --------- #
+pillow-simd
+PyTurboJPEG
+
+# ---------- evaluation ---------------#
+pycocotools==2.0.6
+
+# --------- others --------- #
+albumentations
+albumentations_experimental
+python-dotenv   # loading env variables from .env file
+rich            # beautiful text formatting in terminal
+pytest          # tests
+sh              # for running bash commands in some tests
+scikit-learn    # used in some callbacks
+seaborn         # used in some callbacks
+jupyterlab      # better jupyter notebooks
+pudb            # debugger
+datapane        # online web reports
+opencv-python # to handle AttributeError: partially initialized module 'cv2' has no attribute 'gapi_wip_gst_GStreamerPipeline'
+typing_extensions
+loguru          # fancy logging
+
+

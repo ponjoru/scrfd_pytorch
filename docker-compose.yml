@@ -1,0 +1,20 @@
+---
+# used for development/testing
+version: '3'
+services:
+  scrfd_pytorch:
+    image: scrfd_pytorch
+    build:
+      context: .
+      shm_size: '50gb'
+    shm_size: '50gb'
+    runtime: nvidia
+    network_mode: 'bridge'
+    volumes:
+      - ${DATASETS_PATH}:/datasets
+      - ${PROJECT_PATH}:/app
+    command: bash -c "python3 scripts/train.py"
+    ports:
+      - 9111:8888
+    environment:
+      CUDA_VISIBLE_DEVICES: ${CUDA_VISIBLE_DEVICES:-0}
