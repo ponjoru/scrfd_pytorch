@@ -272,8 +272,8 @@ def parameter_list(
 
 
 def get_anchor_centers(fm_h, fm_w, stride, na):
-    xv, yv = torch.meshgrid(torch.arange(fm_w), torch.arange(fm_h), indexing='ij')
-    anchor_centers = torch.stack([yv, xv], dim=-1).float()
+    sy, sx = torch.meshgrid(torch.arange(fm_w), torch.arange(fm_h), indexing='ij')
+    anchor_centers = torch.stack([sx, sy], dim=-1).float()
     anchor_centers = (anchor_centers * stride).reshape((-1, 2))
     anchor_centers = torch.stack([anchor_centers] * na, dim=1).reshape((-1, 2))
     return anchor_centers

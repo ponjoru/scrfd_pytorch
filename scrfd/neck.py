@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from typing import List, Union, Tuple, Dict, Optional
-
+from loguru import logger
 import warnings
 
 
@@ -147,6 +147,7 @@ class PAFPN(FPN):
         start_level=0,
         end_level=-1,
         add_extra_convs=False,
+        freezed=False,
     ):
         super(PAFPN, self).__init__(in_channels, out_channels, num_outs, start_level, end_level, add_extra_convs)
         # add extra bottom up pathway
@@ -157,6 +158,11 @@ class PAFPN(FPN):
             pafpn_conv = nn.Conv2d(out_channels, out_channels, (3, 3), padding=1)
             self.downsample_convs.append(d_conv)
             self.pafpn_convs.append(pafpn_conv)
+
+        if freezed:
+            logger.warning(f'Freezing the neck')
+            for param in self.parameters():
+                param.requires_grad = False
 
     def forward(self, inputs: List[torch.Tensor]) -> List[torch.Tensor]:
         """Forward function."""

@@ -35,8 +35,8 @@ class SCRFD(nn.Module):
 
     @staticmethod
     def get_anchor_centers(fm_h, fm_w, stride, na):
-        xv, yv = torch.meshgrid(torch.arange(fm_w), torch.arange(fm_h), indexing='ij')
-        anchor_centers = torch.stack([yv, xv], dim=-1).float()
+        sy, sx = torch.meshgrid(torch.arange(fm_h), torch.arange(fm_w), indexing='ij')
+        anchor_centers = torch.stack([sx, sy], dim=-1).float()
         anchor_centers = (anchor_centers * stride).reshape((-1, 2))
         anchor_centers = torch.stack([anchor_centers] * na, dim=1).reshape((-1, 2))
         return anchor_centers
@@ -198,6 +198,23 @@ class SCRFD(nn.Module):
 
     def load_from_checkpoint(self, ckpt_fp, strict=True, verbose=False):
         ckpt = torch.load(ckpt_fp)
+        # from loguru import logger
+        # from collections import OrderedDict
+        #
+        # logger.warning('Partial checkpoint initialization')
+        # b_sd = OrderedDict()
+        # for k, v in ckpt['model'].items():
+        #     if k.startswith('backbone'):
+        #         b_sd[k[9:]] = v
+        # self.backbone.load_state_dict(b_sd)
+        #
+        # # -------- NECK
+        # n_sd = OrderedDict()
+        # for k, v in ckpt['model'].items():
+        #     if k.startswith('neck'):
+        #         n_sd[k[5:]] = v
+        # self.neck.load_state_dict(n_sd)
+
         self.load_state_dict(state_dict=ckpt['model'], strict=strict)
         del ckpt
 
