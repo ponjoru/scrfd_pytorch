@@ -2,8 +2,10 @@
 # For licensing see accompanying LICENSE file.
 # Copyright (C) 2022 Apple Inc. All Rights Reserved.
 #
-
+import types
+import torch
 from torch import nn
+from copy import deepcopy
 from typing import Optional
 
 from loguru import logger
@@ -113,16 +115,13 @@ def initialize_norm_layers(module) -> None:
     _init_fn(module.layer) if hasattr(module, "layer") else _init_fn(module=module)
 
 
-def initialize_weights(modules) -> None:
+def initialize_weights(modules, conv_init_type, linear_init_type) -> None:
     """Helper function to initialize differnet layers in a model"""
     # weight initialization
-    conv_init_type = "kaiming_normal"
-    linear_init_type = "normal"
-
     conv_std = None
     linear_std = 0.01
 
-    if isinstance(modules, (nn.Sequential, nn.ModuleList)):
+    if isinstance(modules, (nn.Sequential, nn.ModuleList, types.GeneratorType)):
         for m in modules:
             if isinstance(m, (nn.Conv2d, nn.Conv3d)):
                 initialize_conv_layer(
@@ -145,3 +144,36 @@ def initialize_weights(modules) -> None:
             initialize_fc_layer(
                 module=modules, init_method=linear_init_type, std_val=linear_std
             )
+
+
+def initialize_module_weights(
+    module: nn.Module,
+    conv_init_type: str = "xavier_uniform",
+    linear_init_type: str = "normal",
+    validate: bool = False
+):
+    sd1 = None
+    if validate:
+        sd1 = deepcopy(module.state_dict())
+
+    initialize_weights(module.modules(), conv_init_type, linear_init_type)
+
+    if validate:
+        sd2 = module.state_dict()
+
+        identical = []
+        changed = []
+
+        ignore = ['running', 'var', 'mean', 'num_batches_tracked']
+        for k1, v1 in sd1.items():
+            v2 = sd2[k1]
+            is_key_ignored = not any([x in k1 for x in ignore])
+            if torch.allclose(v1, v2) and is_key_ignored:
+                identical.append((k1, v1, v2))
+            else:
+                changed.append(k1)
+
+        if len(identical):
+            percentage = round(len(changed) / len(sd1) * 100.0)
+            logger.warning(f'{percentage}% of weights changed after initialization of the module: '
+                           f'{module.__class__.__name__}')

@@ -2,9 +2,12 @@ import torch
 import torch.nn as nn
 import torchvision
 from torch import Tensor
-
+import sys
+sys.path.insert(0, '/app/3rd/scrfd_pytorch/scrfd')
 from .utils import distance2bbox, distance2kps, parameter_list
-from .init_utils import initialize_weights
+from .init_utils import initialize_module_weights
+from loguru import logger
+from collections import OrderedDict
 
 
 class SCRFD(nn.Module):
@@ -18,7 +21,8 @@ class SCRFD(nn.Module):
         self.num_classes = self.bbox_head.num_classes
         self.use_kps = self.bbox_head.use_kps
 
-        initialize_weights(self.modules())
+        initialize_module_weights(self.neck, validate=True)
+        initialize_module_weights(self.bbox_head, validate=True)
 
     def forward(self, x: Tensor):
         out = self._forward(x)
@@ -196,26 +200,27 @@ class SCRFD(nn.Module):
         else:
             return self._postprocess_default(raw_pred, iou_thresh, conf_thresh)
 
-    def load_from_checkpoint(self, ckpt_fp, strict=True, verbose=False):
+    def load_from_checkpoint(self, ckpt_fp, strict=True, verbose=True, partial=False):
         ckpt = torch.load(ckpt_fp)
-        # from loguru import logger
-        # from collections import OrderedDict
-        #
-        # logger.warning('Partial checkpoint initialization')
-        # b_sd = OrderedDict()
-        # for k, v in ckpt['model'].items():
-        #     if k.startswith('backbone'):
-        #         b_sd[k[9:]] = v
-        # self.backbone.load_state_dict(b_sd)
-        #
-        # # -------- NECK
-        # n_sd = OrderedDict()
-        # for k, v in ckpt['model'].items():
-        #     if k.startswith('neck'):
-        #         n_sd[k[5:]] = v
-        # self.neck.load_state_dict(n_sd)
 
-        self.load_state_dict(state_dict=ckpt['model'], strict=strict)
+        if partial:
+            if verbose:
+                logger.warning('Partial checkpoint initialization: backbone and neck are loaded only')
+            b_sd = OrderedDict()
+            # -------- Backbone
+            for k, v in ckpt['model'].items():
+                if k.startswith('backbone'):
+                    b_sd[k[9:]] = v
+            self.backbone.load_state_dict(b_sd)
+
+            # -------- NECK
+            # n_sd = OrderedDict()
+            # for k, v in ckpt['model'].items():
+            #     if k.startswith('neck'):
+            #         n_sd[k[5:]] = v
+            # self.neck.load_state_dict(n_sd)
+        else:
+            self.load_state_dict(state_dict=ckpt['model'], strict=strict)
         del ckpt
 
     def get_param_groups(self, no_decay_bn_filter_bias, wd):
