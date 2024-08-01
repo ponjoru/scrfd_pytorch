@@ -4,6 +4,7 @@ import torch.nn.functional as F
 from typing import List, Union, Tuple, Dict, Optional
 from loguru import logger
 import warnings
+from .utils import ConvBnAct
 
 
 class FPN(nn.Module):
@@ -154,8 +155,10 @@ class PAFPN(FPN):
         self.downsample_convs = nn.ModuleList()
         self.pafpn_convs = nn.ModuleList()
         for i in range(self.start_level + 1, self.backbone_end_level):
-            d_conv = nn.Conv2d(out_channels, out_channels, (3, 3), stride=(2, 2), padding=1)
-            pafpn_conv = nn.Conv2d(out_channels, out_channels, (3, 3), padding=1)
+            d_conv = ConvBnAct(out_channels, out_channels, kernel_size=(3, 3), stride=(2, 2), padding=1)
+            pafpn_conv = ConvBnAct(out_channels, out_channels, kernel_size=(3, 3), padding=1)
+            # d_conv = nn.Conv2d(out_channels, out_channels, (3, 3), stride=(2, 2), padding=1)
+            # pafpn_conv = nn.Conv2d(out_channels, out_channels, (3, 3), padding=1)
             self.downsample_convs.append(d_conv)
             self.pafpn_convs.append(pafpn_conv)
 
