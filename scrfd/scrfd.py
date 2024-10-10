@@ -2,8 +2,6 @@ import torch
 import torch.nn as nn
 import torchvision
 from torch import Tensor
-import sys
-sys.path.insert(0, '/app/3rd/scrfd_pytorch/scrfd')
 from .utils import distance2bbox, distance2kps, parameter_list
 from .init_utils import initialize_module_weights
 from loguru import logger
@@ -20,7 +18,8 @@ class SCRFD(nn.Module):
         self.strides = self.bbox_head.strides
         self.num_classes = self.bbox_head.num_classes
         self.use_kps = self.bbox_head.use_kps
-
+   
+    def init_weights(self):
         initialize_module_weights(self.neck, validate=True)
         initialize_module_weights(self.bbox_head, validate=True)
 
